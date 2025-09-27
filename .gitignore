@@ -1,20 +1,16 @@
-# General folders to ignore
+# Directories
+docs/
+matadrs/
+examples/
 __pycache__/
 *.egg-info/
 
-# Files to ignore
+# Files
 *.txt
-
-# Specific folders to ignore
-tests/
-matadrs/jacob_files
-docs/
-doc/
-matadrs/
-examples/
-
-# Specific files to ignore
 .gitattributes
 LICENSE
 MANIFEST.in
 README.md
+uv.lock
+.envrc
+.python-version
