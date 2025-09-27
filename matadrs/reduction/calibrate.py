@@ -3,31 +3,35 @@ import shutil
 import subprocess
 from collections import deque, namedtuple
 from pathlib import Path
-from typing import Optional, Dict, List
+from typing import Dict, List
 from warnings import warn
 
 import pkg_resources
 
-from .fluxcal import fluxcal
 from ..mat_tools.calib_BCD2 import calib_BCD
-from ..utils.plot import Plotter
 from ..utils.readout import ReadoutFits
-from ..utils.tools import cprint, print_execution_time, get_path_descriptor, \
-        check_if_target, get_fits_by_tag, get_execution_modes, split_fits
-
-__all__ = ["create_visibility_sof", "check_file_match", "sort_fits_by_bcd_configuration",
-           "calibrate_bcd", "calibrate_visibilities", "calibrate_fluxes",
-           "cleanup_calibration", "calibrate_files", "calibrate_folders"]
+from ..utils.tools import (
+    check_if_target,
+    cprint,
+    get_execution_modes,
+    get_fits_by_tag,
+    get_path_descriptor,
+    print_execution_time,
+    split_fits,
+)
+from .fluxcal import fluxcal
 
 DATABASE_DIR = Path(
-    pkg_resources.resource_filename("matadrs", "data/calibrator_databases"))
-DATABASES = ["vBoekelDatabase.fits",
-             "calib_spec_db_v10.fits",
-             "calib_spec_db_v10_supplement.fits",
-             "calib_spec_db_supplement3.fits"]
+    pkg_resources.resource_filename("matadrs", "data/calibrator_databases")
+)
+DATABASES = [
+    "vBoekelDatabase.fits",
+    "calib_spec_db_v10.fits",
+    "calib_spec_db_v10_supplement.fits",
+    "calib_spec_db_supplement3.fits",
+]
 LBAND_DATABASES = list(map(lambda x: DATABASE_DIR / x, DATABASES))
 NBAND_DATABASES = LBAND_DATABASES[:] + [DATABASE_DIR / "vBoekelDatabase.fitsold"]
-
 MODE_NAMES = {"coherent": "corrflux", "incoherent": "flux"}
 
 
@@ -38,11 +42,12 @@ MODE_NAMES = {"coherent": "corrflux", "incoherent": "flux"}
 # Make a function for this
 # MAT_TARGET_LIST = DATA_DIR / "mat_target_list.xlsx"
 
+
 # TODO: Make a function that takes care of a missing file (int 6, etc.) or use
 # mat_toolsMergeAll somehow
-def create_visibility_sof(reduced_dir: Path,
-                          targets: List[Path],
-                          calibrators: List[Path]) -> Path:
+def create_visibility_sof(
+    reduced_dir: Path, targets: List[Path], calibrators: List[Path]
+) -> Path:
     """Creates the (.sof)-file needed for the visibility calibration with
     "mat_cal_oifits" and returns its path.
 
@@ -87,12 +92,17 @@ def check_file_match(targets: List[Path], calibrators: List[Path]) -> bool:
         True if the same number of files have been found, False otherwise.
     """
     if not targets:
-        cprint("No 'TARGET_RAW_INT*'-files found (Maybe calibrator? If not check for"
-               " error in first reduction step). SKIPPING!", "y")
+        cprint(
+            "No 'TARGET_RAW_INT*'-files found (Maybe calibrator? If not check for"
+            " error in first reduction step). SKIPPING!",
+            "y",
+        )
         cprint(f"{'':-^50}", "lg")
         return False
     if len(targets) < 4:
-        warn("# 'TARGET_RAW_INT'-files is lower than 4! Indicates problems with reduction. SKIPPING!")
+        warn(
+            "# 'TARGET_RAW_INT'-files is lower than 4! Indicates problems with reduction. SKIPPING!"
+        )
         return False
     if len(targets) != len(calibrators):
         warn("#'TARGET_RAW_INT'-files != #'CALIB_RAW_INT'-files!")
@@ -132,17 +142,18 @@ def sort_fits_by_bcd_configuration(fits_files: List[Path]) -> namedtuple:
     return BCDFits(in_in, in_out, out_in, out_out)
 
 
-def match_targets_to_calibrators(targets: List[Path],
-                                 calibrators: List[Path]) -> Dict[str, str]:
+def match_targets_to_calibrators(
+    targets: List[Path], calibrators: List[Path]
+) -> Dict[str, str]:
     """Matches the 'TARGET_RAW_INT'- to the 'CALIB_RAW_INT'-files."""
     first_dict = {}
     for target in targets:
-        numerical_part = re.search(r'\d+', target.name).group()
+        numerical_part = re.search(r"\d+", target.name).group()
         first_dict[numerical_part] = target
 
     matched_entries = {}
     for calibrator in calibrators:
-        numerical_part = re.search(r'\d+', calibrator.name).group()
+        numerical_part = re.search(r"\d+", calibrator.name).group()
         if numerical_part in first_dict:
             matched_entries[first_dict[numerical_part]] = calibrator
     return matched_entries
@@ -193,8 +204,14 @@ def calibrate_bcd(directory: Path, band: str, output_dir: Path) -> None:
 
             bcd = sort_fits_by_bcd_configuration(fits_files)
             if sum(0 if not x else 1 for x in bcd) > 1:
-                calib_BCD(bcd.in_in, bcd.in_out, bcd.out_in,
-                          bcd.out_out, outfile, do_plot=False)
+                calib_BCD(
+                    bcd.in_in,
+                    bcd.in_out,
+                    bcd.out_in,
+                    bcd.out_out,
+                    outfile,
+                    do_plot=False,
+                )
             else:
                 warn("Not enough files. BCD calibration skipped!")
     else:
@@ -205,8 +222,9 @@ def calibrate_bcd(directory: Path, band: str, output_dir: Path) -> None:
             warn("Not enough files. BCD calibration skipped!")
 
 
-def calibrate_visibilities(targets: List[Path],
-                           calibrators: List[Path], output_dir: Path) -> None:
+def calibrate_visibilities(
+    targets: List[Path], calibrators: List[Path], output_dir: Path
+) -> None:
     """Calibrates the visibilities of all the provided files and saves them to
     the output directory.
 
@@ -221,17 +239,19 @@ def calibrate_visibilities(targets: List[Path],
     """
     cprint("Calibrating visibilities...", "g")
     sof_file = create_visibility_sof(output_dir, targets, calibrators)
-    subprocess.call(["esorex", f"--output-dir={str(output_dir)}",
-                     "mat_cal_oifits", str(sof_file)],
-                    stdout=subprocess.DEVNULL)
+    subprocess.call(
+        ["esorex", f"--output-dir={str(output_dir)}", "mat_cal_oifits", str(sof_file)],
+        stdout=subprocess.DEVNULL,
+    )
     cprint("Plotting visibility calibrated files...", "y")
     # for fits_file in get_fits_by_tag(output_dir, "TARGET_CAL_INT"):
     #     plot_fits = Plotter(fits_file, save_dir=output_dir)
     #     plot_fits.add_t3().add_vis().plot(save=True, error=True)
 
 
-def calibrate_fluxes(targets: List[Path], calibrators: List[Path],
-                     mode: str, band: str, output_dir: Path) -> None:
+def calibrate_fluxes(
+    targets: List[Path], calibrators: List[Path], mode: str, band: str, output_dir: Path
+) -> None:
     """Calibrates the fluxes of all the provided files and saves it to the
     output directory.
 
@@ -257,10 +277,15 @@ def calibrate_fluxes(targets: List[Path], calibrators: List[Path],
         databases, do_airmass = NBAND_DATABASES, True
         if band == "lband":
             databases, do_airmass = LBAND_DATABASES, False
-        fluxcal(str(target), str(calibrator), str(output_file),
-                list(map(str, databases)), mode=MODE_NAMES[mode],
-                output_fig_dir=str(output_dir),
-                do_airmass_correction=do_airmass)
+        fluxcal(
+            str(target),
+            str(calibrator),
+            str(output_file),
+            list(map(str, databases)),
+            mode=MODE_NAMES[mode],
+            output_fig_dir=str(output_dir),
+            do_airmass_correction=do_airmass,
+        )
         cprint(f"Plotting file '{output_file.name}'...", "y")
         # plot_fits = Plotter(output_file, save_dir=output_dir)
         # plot_fits.add_t3().add_vis().add_vis2()
@@ -275,14 +300,20 @@ def cleanup_calibration(output_dir: Path):
     for fits_file in Path().cwd().glob("*.fits"):
         shutil.move(str(fits_file), str(output_dir / fits_file.name))
     if (Path().cwd() / "esorex.log").exists():
-        shutil.move(str(Path().cwd() / "esorex.log"),
-                    str(output_dir / "mat_cal_oifits.log"))
+        shutil.move(
+            str(Path().cwd() / "esorex.log"), str(output_dir / "mat_cal_oifits.log")
+        )
     cprint(f"{'':-^50}", "lg")
 
 
-def calibrate_files(reduced_dir: Path, target_dir: Path,
-                    calibrator_dir: Path, mode: str,
-                    band: str, overwrite: bool) -> None:
+def calibrate_files(
+    reduced_dir: Path,
+    target_dir: Path,
+    calibrator_dir: Path,
+    mode: str,
+    band: str,
+    overwrite: bool,
+) -> None:
     """The total calibration for a target and a calibrator folder. Includes
     the flux-, visibility- and closure phase (bcd-) calibration.
 
@@ -310,8 +341,9 @@ def calibrate_files(reduced_dir: Path, target_dir: Path,
     if check_file_match(targets, calibrators):
         matches = match_targets_to_calibrators(targets, calibrators)
         targets, calibrators = map(list, [matches.keys(), matches.values()])
-        output_dir = get_path_descriptor(reduced_dir, "TAR-CAL",
-                                         targets[0], calibrators[0])
+        output_dir = get_path_descriptor(
+            reduced_dir, "TAR-CAL", targets[0], calibrators[0]
+        )
         if not output_dir.exists():
             output_dir.mkdir(parents=True, exist_ok=overwrite)
         calibrate_fluxes(targets, calibrators, mode, band, output_dir)
@@ -320,8 +352,7 @@ def calibrate_files(reduced_dir: Path, target_dir: Path,
         cleanup_calibration(output_dir)
 
 
-def calibrate_folders(reduced_dir: Path, mode: str,
-                      band: str, overwrite: bool) -> None:
+def calibrate_folders(reduced_dir: Path, mode: str, band: str, overwrite: bool) -> None:
     """Calibrates a directory containing the scientific target with a directory
     containing the calibrator observation. Calibrates flux, visibility and
     closure phases (bcd).
@@ -351,8 +382,9 @@ def calibrate_folders(reduced_dir: Path, mode: str,
                 if directory == rotated_directory:
                     continue
 
-                calibrate_files(reduced_dir, directory,
-                                rotated_directory, mode, band, overwrite)
+                calibrate_files(
+                    reduced_dir, directory, rotated_directory, mode, band, overwrite
+                )
     cprint(f"Finished calibration of {band} and {mode}", "lp")
     cprint(f"{'':-^50}", "lp")
 
@@ -362,10 +394,12 @@ def calibrate_folders(reduced_dir: Path, mode: str,
 # TODO: Implement checking for overwriting. Right now overwriting is by default.
 # Also the overwriting is not working properly right now
 @print_execution_time
-def calibration_pipeline(reduced_dir: Path,
-                         mode: Optional[str] = "both",
-                         band: Optional[str] = "both",
-                         overwrite: Optional[bool] = False) -> None:
+def calibration_pipeline(
+    reduced_dir: Path,
+    mode: str = "both",
+    band: str = "both",
+    overwrite: bool = False,
+) -> None:
     """Does the full calibration for all of the reduced directories
     subdirectories.
 

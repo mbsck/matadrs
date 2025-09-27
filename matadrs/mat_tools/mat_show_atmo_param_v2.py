@@ -43,6 +43,7 @@ Changelog:
             more bands (JHK) available (for e.g. AMBER data), plot with or without errorbars, plot V or V2 (jvarga)
 2023-12-06: Updated saving of plots (automated folder creation) and documentation of functions (mScheuck)
 """
+
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -53,10 +54,12 @@ from ..utils import robust
 
 
 def show_seeing(
-        list_of_dicts: List[Dict],
-        saveplots: Optional[bool] = False,
-        output_path: Optional[Path] = None,
-        show: Optional[bool] = True, **kwargs) -> None:
+    list_of_dicts: List[Dict],
+    saveplots: bool = False,
+    output_path: Path | str | None = None,
+    show: bool = True,
+    **kwargs,
+) -> None:
     """Plots the seeing for the oifits-files.
 
     Parameters
@@ -86,8 +89,9 @@ def show_seeing(
         axs2 = fig.add_subplot(2, 1, 2)
         axs1 = fig.add_subplot(2, 1, 1, sharex=axs2)
         plt.setp(axs1.get_xaxis().get_offset_text(), visible=False)
-        axs1.tick_params(axis="x", which="both", bottom=False,
-                         top=False, labelbottom=False)
+        axs1.tick_params(
+            axis="x", which="both", bottom=False, top=False, labelbottom=False
+        )
 
         axs2.plot(mjd_arr, tau0_arr, "s")
         print(f"Tau0_MEAN = {np.mean(tau0_arr)} +- {np.std(tau0_arr)}")
@@ -108,7 +112,10 @@ def show_seeing(
                     np.array(dic["VIS2"]["TIME"])[0],
                     np.max(seeing_arr) + 0.5 + 0.1,
                     target_names.replace("_", " "),
-                    rotation=90, va="bottom", fontsize=8)
+                    rotation=90,
+                    va="bottom",
+                    fontsize=8,
+                )
             except KeyError:
                 continue
 
@@ -130,13 +137,15 @@ def show_seeing(
 
 
 def show_vis_vs_seeing(
-        list_of_dicts: List[Dict], wlenRange: List[float],
-        numPeak: Optional[int] = 1,
-        numPeak2: Optional[int] = 6,
-        saveplots: Optional[bool] = False,
-        vis: Optional[bool] = True,
-        output_dir: Optional[Path] = None,
-        show: Optional[bool] = True) -> None:
+    list_of_dicts: List[Dict],
+    wlenRange: List[float],
+    numPeak: int = 1,
+    numPeak2: int = 6,
+    saveplots: bool = False,
+    vis: bool = True,
+    output_dir: Path | str | None = None,
+    show: bool = True,
+) -> None:
     """Plots the visibility vs. seeing for the oifits-files.
 
     Parameters
@@ -388,13 +397,14 @@ def show_vis_vs_seeing(
 
 
 def show_vis_vs_seeing_GRA4MAT(
-        list_of_dicts: List[Dict],
-        wlenRange: List[float],
-        numPeak: int = 1,
-        saveplots: Optional[bool] = False,
-        vis: Optional[bool] = True,
-        output_path: Optional[Path] = None,
-        show: Optional[bool] = True) -> None:
+    list_of_dicts: List[Dict],
+    wlenRange: List[float],
+    numPeak: int = 1,
+    saveplots: bool = False,
+    vis: bool = True,
+    output_path: Path = None,
+    show: bool = True,
+) -> None:
     """Plots the vis for the oifits-files vs seeing.
 
     Parameters
@@ -550,11 +560,9 @@ def show_vis_vs_seeing_GRA4MAT(
 
         if vis:
             axs1.plot(
-                TF2_seeing, TF_arr, "o",
-                markersize=12, label="MATISSE standalone"
+                TF2_seeing, TF_arr, "o", markersize=12, label="MATISSE standalone"
             )
-            axs1.plot(TF2_seeing_gra, TF_arr_gra,
-                      "o", markersize=12, label="GRA4MAT")
+            axs1.plot(TF2_seeing_gra, TF_arr_gra, "o", markersize=12, label="GRA4MAT")
         else:
             axs1.plot(
                 TF2_seeing,
@@ -621,12 +629,13 @@ def show_vis_vs_seeing_GRA4MAT(
 
 ###############################################################################
 def show_clo_vs_seeing(
-        list_of_dicts: List[Dict],
-        wlenRange: List[float],
-        numPeak: Optional[int] = 1,
-        saveplots: Optional[bool] = False,
-        output_path: Optional[Path] = None,
-        show: Optional[bool] = True) -> None:
+    list_of_dicts: List[Dict],
+    wlenRange: List[float],
+    numPeak: int = 1,
+    saveplots: bool = False,
+    output_path: Path | str | None = None,
+    show: bool = True,
+) -> None:
     """Plots the closure vs. seeing for the oifits-files.
 
     Parameters
@@ -771,28 +780,22 @@ def show_clo_vs_seeing(
         axs2.set_xlabel("Tau0 (ms)")
         axs2.set_ylabel("Closure phase [deg]")
 
-        axs1.plot(PHI3_seeing[ind_tau02], PHI3_arr[ind_tau02],
-                  "d", label="tau0 < 2ms")
+        axs1.plot(PHI3_seeing[ind_tau02], PHI3_arr[ind_tau02], "d", label="tau0 < 2ms")
         axs1.plot(
-            PHI3_seeing[ind_tau04], PHI3_arr[ind_tau04],
-            "d", label="2ms < tau0 < 4ms"
+            PHI3_seeing[ind_tau04], PHI3_arr[ind_tau04], "d", label="2ms < tau0 < 4ms"
         )
         axs1.plot(
-            PHI3_seeing[ind_tau06], PHI3_arr[ind_tau06],
-            "d", label="4ms < tau0 < 6ms"
+            PHI3_seeing[ind_tau06], PHI3_arr[ind_tau06], "d", label="4ms < tau0 < 6ms"
         )
         axs1.plot(
-            PHI3_seeing[ind_tau08], PHI3_arr[ind_tau08],
-            "d", label="6ms < tau0 < 8ms"
+            PHI3_seeing[ind_tau08], PHI3_arr[ind_tau08], "d", label="6ms < tau0 < 8ms"
         )
         axs1.plot(
-            PHI3_seeing[ind_tau0sup], PHI3_arr[ind_tau0sup],
-            "d", label="tau0 > 8ms"
+            PHI3_seeing[ind_tau0sup], PHI3_arr[ind_tau0sup], "d", label="tau0 > 8ms"
         )
         axs1.set_ylabel("Closure phase [deg]")
         axs1.set_xlabel("Seeing (as)")
-        axs1.set_title(
-            f"BCD-calibrated Closure phase (bispectrum peak {numPeak})")
+        axs1.set_title(f"BCD-calibrated Closure phase (bispectrum peak {numPeak})")
 
         axs1.set_ylim(-3, 3)
         axs2.set_ylim(-3, 3)

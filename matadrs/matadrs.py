@@ -1,22 +1,28 @@
 from pathlib import Path
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
-from .reduction import reduction_pipeline, calibration_pipeline,\
-    averaging_pipeline, merging_pipeline
+from .reduction import (
+    averaging_pipeline,
+    calibration_pipeline,
+    merging_pipeline,
+    reduction_pipeline,
+)
 from .utils.tools import cprint, print_execution_time
 
 
 @print_execution_time
-def matadrs_pipeline(raw_dirs: Union[List[Path], Path],
-                     product_dirs: Union[List[Path], Path],
-                     mode: Optional[str] = "both",
-                     band: Optional[str] = "both",
-                     overwrite: Optional[bool] = False,
-                     do_reduce: Optional[bool] = True,
-                     do_calibrate: Optional[bool] = True,
-                     do_average: Optional[bool] = True,
-                     do_merge: Optional[bool] = True,
-                     ncores: Optional[int] = 6) -> None:
+def matadrs_pipeline(
+    raw_dirs: Union[List[Path], Path],
+    product_dirs: Union[List[Path], Path],
+    mode: str = "both",
+    band: str = "both",
+    overwrite: bool = False,
+    do_reduce: bool = True,
+    do_calibrate: bool = True,
+    do_average: bool = True,
+    do_merge: bool = True,
+    ncores: int = 6,
+) -> None:
     """Combines all the facettes of data reduction into one executable function
     that takes a single or a list of epochs to be reduced via the MATISSE
     pipeline, then calibrates, merges and averages them, in succession.
@@ -70,8 +76,9 @@ def matadrs_pipeline(raw_dirs: Union[List[Path], Path],
         else:
             raise IOError("The Path given for the raw_dirs do not exists!")
     else:
-        raise IOError("Nor valid Lists of Paths nor valid Path for raw_dirs"
-                      " has been input!")
+        raise IOError(
+            "Nor valid Lists of Paths nor valid Path for raw_dirs" " has been input!"
+        )
 
     if isinstance(product_dirs, list):
         if not all(list(map(lambda x: isinstance(x, Path), product_dirs))):

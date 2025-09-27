@@ -1,35 +1,9 @@
 from types import SimpleNamespace
 
-
-# NOTE: Averaging
-average = SimpleNamespace(
-    method="mat_tools",
-    func="robustmean"
-    )
-
-# NOTE: Plot
-color = SimpleNamespace(
-        # colormap="seaborn-v0_8-colorblind",
-        colormap="tab20",
-        number=100
-        )
-
-legend = SimpleNamespace(
-        fontsize="small",
-        location="upper right"
-        )
-
-plot = SimpleNamespace(
-        color=color, dpi=300,
-        legend=legend,
-        linestyles=["-", "--", "-.", ":"],
-        size=700
-        )
-
-# NOTE: All settings
-OPTIONS = SimpleNamespace(
-        average=average,
-        color=color,
-        legend=legend,
-        plot=plot
-        )
+AVERAGE = SimpleNamespace(method="mat_tools", func="robustmean")
+COLOR = SimpleNamespace(colormap="tab20", number=100)
+LEGEND = SimpleNamespace(fontsize="small", location="upper right")
+PLOT = SimpleNamespace(
+    color=COLOR, dpi=300, legend=LEGEND, linestyles=["-", "--", "-.", ":"], size=700
+)
+OPTIONS = SimpleNamespace(average=AVERAGE, color=COLOR, legend=LEGEND, plot=PLOT)

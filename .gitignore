@@ -1,14 +1,13 @@
-# General folders to ignore
+# Directories
 __pycache__/
-*.egg-info/
-
-# Files to ignore
-*.txt
-
-# Specific folders to ignore
 tests/
 matadrs/jacob_files
 docs/build/
 doc/
+*.egg-info/
 
-# Specific files to ignore
+# Files to ignore
+*.txt
+uv.lock
+.envrc
+.python-version

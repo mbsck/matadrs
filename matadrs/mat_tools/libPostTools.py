@@ -1,4 +1,5 @@
-"""This file is part of the Matisse pipeline GUI series
+"""
+This file is part of the Matisse pipeline GUI series
 Copyright (C) 2017- Observatoire de la Côte d'Azur
 
 Created on Tue Nov 19 13:50:34 2019
@@ -20,6 +21,7 @@ licence in the LICENCE.md file.
 The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 """
+
 import os
 from pathlib import Path
 from typing import List, Optional
@@ -27,7 +29,6 @@ from typing import List, Optional
 import numpy as np
 from astropy.io import fits
 from scipy.stats import circvar
-
 
 BCD = [
     [0, 1, 2, 3, 4, 5],  # OUT-OUT (0)
@@ -73,9 +74,7 @@ BCDfluxN = [[3, 2, 0, 1], [3, 2, 1, 0], [2, 3, 0, 1], [2, 3, 1, 0]]
 def mat_sortByTplStart(fits_files: List[Path]):
     data = []
     if type(fits_files) == type(""):
-        fits_files = [
-            fits_files + "/" + filei for filei in os.listdir(fits_files)
-        ]
+        fits_files = [fits_files + "/" + filei for filei in os.listdir(fits_files)]
     if type(fits_files[0]) == type(""):
         data = [fits.open(oifitsi) for oifitsi in fits_files]
     else:
@@ -454,8 +453,7 @@ def mat_mergeOifits(fits_files: List[Path]):
 ####################### removing BCD in an oifits files ########################
 
 
-def mat_removeBCD(fits_file: fits.HDUList,
-                  saveFits: Optional[bool] = False) -> None:
+def mat_removeBCD(fits_file: fits.HDUList, saveFits: bool = False) -> None:
     """Removes BCD from an oifits file.
 
     Parameters
@@ -590,7 +588,7 @@ def mat_removeBCD(fits_file: fits.HDUList,
 
     data[0].header["ESO INS BCD1 NAME"] = "OUT"
     data[0].header["ESO INS BCD2 NAME"] = "OUT"
-    if saveFits == True:
+    if saveFits:
         filenamein = data.filename()
         filenameout = filenamein.split(".fits")[0] + "_noBCD.fits"
         data.writeto(filenameout)
@@ -601,12 +599,14 @@ def mat_removeBCD(fits_file: fits.HDUList,
 # =============================================================================
 
 
-def mat_mergeByTplStart(directory: Optional[Path] = None,
-                        fits_files: Optional[List[str]] = None,
-                        output_dir: Optional[Path] = "merged",
-                        save: Optional[bool] = False,
-                        verbose: Optional[bool] = True,
-                        separateChopping: Optional[bool] = False) -> List:
+def mat_mergeByTplStart(
+    directory: Path | None = None,
+    fits_files: List[str] | None = None,
+    output_dir: Path | str = "merged",
+    save: bool = False,
+    verbose: bool = True,
+    separateChopping: bool = False,
+) -> List:
     """Merges data from multiple TPLSTARTs.
 
     Parameters
@@ -639,8 +639,8 @@ def mat_mergeByTplStart(directory: Optional[Path] = None,
                 return
             currentDir = directory
             directory = [
-                    directory + "/" + fi for fi in os.listdir(directory) if ".fits" in fi
-                    ]
+                directory + "/" + fi for fi in os.listdir(directory) if ".fits" in fi
+            ]
         if type(directory[0]) == type(""):
             data = [fits.open(oifitsi) for oifitsi in directory]
         else:

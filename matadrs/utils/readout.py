@@ -1,16 +1,16 @@
-import pkg_resources
 import re
 import warnings
 from itertools import permutations
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
-import numpy as np
 import astropy.units as u
-from astropy.io import fits
-from astroquery.simbad import Simbad
-from astropy.table import Table
+import numpy as np
+import pkg_resources
 from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.table import Table
+from astroquery.simbad import Simbad
 
 from ..utils.tools import HeaderNotFoundWarning
 
@@ -28,6 +28,7 @@ def add_array_config(dictionary: Dict, key: str, value: str) -> Dict:
     """Adds all permutations of the configuration to the dictionary."""
     perms = map(lambda x: "-".join(x), permutations(key.split("-")))
     return {**dictionary, **{perm: value for perm in perms}}
+
 
 ARRAY_CONFIGS = {}
 ARRAY_CONFIGS = add_array_config(ARRAY_CONFIGS, "A0-B2-D0-C1", "small")
@@ -195,7 +196,7 @@ class ReadoutFits:
         return self.instrument
 
     @property
-    def gravity_index(self) -> Optional[int]:
+    def gravity_index(self) -> int:
         """Returns the indices for either the fringe tracker or science
         observations."""
         if self.instrument == "gravity":
@@ -331,7 +332,7 @@ class ReadoutFits:
         )
 
     @property
-    def tau0(self) -> Optional[float]:
+    def tau0(self) -> float:
         """Fetches the tau0 from the primary header."""
         if "HIERARCH ESO ISS AMBI TAU0 END" not in self.primary_header:
             return None
@@ -577,7 +578,7 @@ class ReadoutFits:
         else:
             raise ValueError("Invalid version format." " Please use x.y.z format.")
 
-    def get_header(self, header: str) -> Optional[fits.Header]:
+    def get_header(self, header: str) -> fits.Header:
         """Fetches a Card's header by its header name.
 
         Parameters
@@ -672,8 +673,10 @@ class ReadoutFits:
         delay_lines : list of  str
         """
         return [
-            "-".join(list(map(self.sta_to_tel.get, station_index)))
-            if all([index in self.sta_to_tel for index in station_index])
-            else ""
+            (
+                "-".join(list(map(self.sta_to_tel.get, station_index)))
+                if all([index in self.sta_to_tel for index in station_index])
+                else ""
+            )
             for station_index in table["STA_INDEX"]
         ]

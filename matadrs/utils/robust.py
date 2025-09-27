@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Small collection of robust statistical estimators based on functions from
 Henry Freudenriech (Hughes STX) statistics library (called ROBLIB) that have
@@ -22,23 +20,10 @@ For additional information about the original IDL routines, see:
 """
 
 import math
+
 import numpy
 
 __version__ = "0.4"
-__revision__ = "$Rev$"
-__all__ = [
-    "biweightMean",
-    "mean",
-    "mode",
-    "std",
-    "checkfit",
-    "linefit",
-    "polyfit",
-    "__version__",
-    "__revision__",
-    "__all__",
-]
-
 __iterMax = 25
 __delta = 5.0e-7
 __epsilon = 1.0e-20

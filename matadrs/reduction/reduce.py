@@ -1,31 +1,32 @@
 import shutil
 import warnings
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import List, Tuple
 
 from ..mat_tools.mat_autoPipeline import mat_autoPipeline
 from ..utils.plot import Plotter, plot_data_quality
 from ..utils.readout import ReadoutFits
-from ..utils.tools import HeaderNotFoundWarning, cprint, \
-        print_execution_time, get_execution_modes, get_fits_by_tag
+from ..utils.tools import (
+    HeaderNotFoundWarning,
+    cprint,
+    get_execution_modes,
+    get_fits_by_tag,
+    print_execution_time,
+)
 
-
-# NOTE: Remove the headers warnings as raw files are non-oifits
 warnings.filterwarnings("ignore", category=HeaderNotFoundWarning)
 
-__all__ = ["set_script_arguments", "cleanup_reduction",
-           "reduce_mode_and_band", "prepare_reduction"]
-
-
-# CATALOG_DIR = Path(
-#     pkg_resources.resource_filename("matadrs", "data/catalogues"))
-# JSDC_V2_CATALOG = Vizier(catalog="II/346/jsdc_v2")
-# JSDC_CATALOG = CATALOG_DIR / "jsdc_v2_catalog_20170303.fits"
-# ADDITIONAL_CATALOG = CATALOG_DIR / "supplementary_catalog_202207.fits"
-
 SPECTRAL_BINNING = {"low": [5, 7], "high_uts": [5, 38], "high_ats": [5, 98]}
-CALIBRATION_IDS = ["KAPPA", "LAMP", "BACKGROUND",
-                   "WAVE", "PINHOLE", "SLIT", "DARK", "FOIL"]
+CALIBRATION_IDS = [
+    "KAPPA",
+    "LAMP",
+    "BACKGROUND",
+    "WAVE",
+    "PINHOLE",
+    "SLIT",
+    "DARK",
+    "FOIL",
+]
 
 
 def get_spectral_binning(raw_dir) -> List[int]:
@@ -81,10 +82,9 @@ def set_script_arguments(mode: str) -> Tuple[str]:
     return coh, f"{coh}/useOpdMod=TRUE/"
 
 
-def prepare_reduction(raw_dir: Path,
-                      calib_dir: Path,
-                      product_dir: Path,
-                      overwrite: Optional[bool]) -> None:
+def prepare_reduction(
+    raw_dir: Path, calib_dir: Path, product_dir: Path, overwrite: bool
+) -> None:
     """Prepares the reduction by removing removing old product files and
     sorting the raw files by associated calibrations and observations.
 
@@ -105,17 +105,21 @@ def prepare_reduction(raw_dir: Path,
     if not calib_dir.exists():
         calib_dir.mkdir(parents=True)
 
-    cprint("Checking files to move calibration files "
-           "into 'calib_files' folders...", "g")
+    cprint(
+        "Checking files to move calibration files " "into 'calib_files' folders...", "g"
+    )
     for fits_file in raw_dir.glob("M.*"):
         shutil.move(fits_file, calib_dir / fits_file.name)
 
 
-def cleanup_reduction(product_dir: Path,
-                      mode: str, band: str,
-                      do_data_quality_plot: bool,
-                      maxIter: Optional[int] = None,
-                      overwrite: Optional[bool] = None) -> None:
+def cleanup_reduction(
+    product_dir: Path,
+    mode: str,
+    band: str,
+    do_data_quality_plot: bool,
+    maxIter: int | None = None,
+    overwrite: bool = False,
+) -> None:
     """Moves the folders to their corresponding folders of structure
     "/mode/band" after the reduction has been finished and plots the
     (.fits)-files contained in them.
@@ -151,8 +155,11 @@ def cleanup_reduction(product_dir: Path,
     reduced_dirs = [folder for folder in iter_dir.iterdir() if folder.is_dir()]
     for reduced_folder in reduced_dirs:
         cprint(f"Copying folder '{reduced_folder.name}'...", "g")
-        shutil.copytree(reduced_folder, mode_and_band_dir / reduced_folder.name,
-                        dirs_exist_ok=overwrite)
+        shutil.copytree(
+            reduced_folder,
+            mode_and_band_dir / reduced_folder.name,
+            dirs_exist_ok=overwrite,
+        )
 
     cprint(f"Removing old iterations...", "g")
     for index in range(1, 6):
@@ -169,16 +176,21 @@ def cleanup_reduction(product_dir: Path,
             plot_fits.plot(save=True, error=True)
 
         if do_data_quality_plot and mode == "incoherent" and band == "lband":
-            plot_data_quality(
-                    reduced_folder, reduced_folder / "data_quality")
+            plot_data_quality(reduced_folder, reduced_folder / "data_quality")
     cprint(f"Finished reducing {band} in {mode}-mode", "lp")
     cprint(f"{'':-^50}", "lp")
 
 
-def reduce_mode_and_band(raw_dir: Path, calib_dir: Path,
-                         product_dir: Path, mode: bool,
-                         band: str, ncores: int,
-                         do_data_quality_plot: bool, overwrite: bool):
+def reduce_mode_and_band(
+    raw_dir: Path,
+    calib_dir: Path,
+    product_dir: Path,
+    mode: bool,
+    band: str,
+    ncores: int,
+    do_data_quality_plot: bool,
+    overwrite: bool,
+):
     """Reduces either the L- and/or the N-band data for either the 'coherent' and/or
     'incoherent' setting for a single iteration/epoch.
 
@@ -218,12 +230,20 @@ def reduce_mode_and_band(raw_dir: Path, calib_dir: Path,
     spectral_binning = get_spectral_binning(raw_dir)
 
     # NOTE: here resol="" is required for the code not to skip the reduction
-    reduction_kwargs = {"dirRaw": str(raw_dir), "dirResult": str(product_dir),
-                        "dirCalib": str(calib_dir), "nbCore": ncores,
-                        "paramL": param_L, "paramN": param_N, "resol": "",
-                        "overwrite": int(overwrite), "maxIter": 1,
-                        "skipL": int(skip_L), "skipN": int(skip_N),
-                        "spectral_binning": spectral_binning}
+    reduction_kwargs = {
+        "dirRaw": str(raw_dir),
+        "dirResult": str(product_dir),
+        "dirCalib": str(calib_dir),
+        "nbCore": ncores,
+        "paramL": param_L,
+        "paramN": param_N,
+        "resol": "",
+        "overwrite": int(overwrite),
+        "maxIter": 1,
+        "skipL": int(skip_L),
+        "skipN": int(skip_N),
+        "spectral_binning": spectral_binning,
+    }
 
     # TODO: Add removing of old reduction
     code = mat_autoPipeline(**reduction_kwargs)
@@ -231,19 +251,26 @@ def reduce_mode_and_band(raw_dir: Path, calib_dir: Path,
         reduction_kwargs["maxIter"] = 5
         mat_autoPipeline(**reduction_kwargs)
 
-    cleanup_reduction(product_dir, mode, band,
-                      do_data_quality_plot,
-                      reduction_kwargs["maxIter"], overwrite)
+    cleanup_reduction(
+        product_dir,
+        mode,
+        band,
+        do_data_quality_plot,
+        reduction_kwargs["maxIter"],
+        overwrite,
+    )
 
 
 @print_execution_time
-def reduction_pipeline(raw_dir: Path,
-                       product_dir: Path,
-                       mode: Optional[str] = "both",
-                       band: Optional[str] = "both",
-                       ncores: Optional[int] = 6,
-                       do_data_quality_plot: Optional[bool] = True,
-                       overwrite: Optional[bool] = False) -> None:
+def reduction_pipeline(
+    raw_dir: Path,
+    product_dir: Path,
+    mode: str = "both",
+    band: str = "both",
+    ncores: int = 6,
+    do_data_quality_plot: bool = True,
+    overwrite: bool = False,
+) -> None:
     """Runs the pipeline for the data reduction.
 
     Parameters
@@ -277,7 +304,14 @@ def reduction_pipeline(raw_dir: Path,
         cprint(f"{'':-^50}", "lg")
         for band in bands:
             cprint(f"Processing the {band.title()}...", "lp")
-            reduce_mode_and_band(raw_dir, calib_dir, product_dir,
-                                 mode, band, ncores,
-                                 do_data_quality_plot, overwrite)
+            reduce_mode_and_band(
+                raw_dir,
+                calib_dir,
+                product_dir,
+                mode,
+                band,
+                ncores,
+                do_data_quality_plot,
+                overwrite,
+            )
     cprint(f"Finished reducing {', '.join(bands)} for {', '.join(modes)}-mode(s)", "lp")

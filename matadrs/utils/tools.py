@@ -2,7 +2,7 @@ import time
 from datetime import timedelta
 from functools import wraps
 from pathlib import Path
-from typing import Union, Optional, Callable, Tuple, List
+from typing import Callable, List, Optional, Tuple, Union
 
 import astropy.units as u
 import matplotlib.pyplot as plt
@@ -10,28 +10,23 @@ import numpy as np
 from astropy.coordinates import EarthLocation
 from astropy.io import fits
 from astropy.table import Table
-from scipy.interpolate import CubicSpline
 from matplotlib import colormaps as mcm
 from matplotlib.colors import ListedColormap
+from scipy.interpolate import CubicSpline
 
 from .options import OPTIONS
 
 
-__all__ = ["cprint", "capitalise_to_index", "print_execution_time",
-           "get_execution_modes", "split_fits", "get_fits_by_tag",
-           "check_if_target", "get_path_descriptor"]
-
-
 class HeaderNotFoundWarning(Warning):
     """This indicates that a header of a (.fits)-file was not found."""
+
     pass
 
 
 def convert_style_to_colormap(style: str) -> ListedColormap:
     """Converts a style into a colormap."""
     plt.style.use(style)
-    colormap = ListedColormap(
-            plt.rcParams["axes.prop_cycle"].by_key()["color"])
+    colormap = ListedColormap(plt.rcParams["axes.prop_cycle"].by_key()["color"])
     plt.style.use("default")
     return colormap
 
@@ -44,8 +39,7 @@ def get_colormap(colormap: str) -> ListedColormap:
         return convert_style_to_colormap(colormap)
 
 
-def get_colorlist(colormap: str,
-                  ncolors: Optional[int] = OPTIONS.color.number) -> List[str]:
+def get_colorlist(colormap: str, ncolors: int = OPTIONS.color.number) -> List[str]:
     """Gets the colormap as a list from the matplotlib colormaps."""
     return [get_colormap(colormap)(i) for i in range(ncolors)]
 
@@ -53,9 +47,8 @@ def get_colorlist(colormap: str,
 # TODO: Get a better error representation for the flux.
 # TODO: Implement smoothing for the flux to the instrument
 def get_flux_data_from_flux_file(
-        flux_file: Path, wavelength_axis: np.ndarray,
-        error_percentage: float
-        ) -> Tuple[u.Quantity[u.Jy], u.Quantity[u.Jy]]:
+    flux_file: Path, wavelength_axis: np.ndarray, error_percentage: float
+) -> Tuple[u.Quantity[u.Jy], u.Quantity[u.Jy]]:
     """Reads the flux data from the flux file and then interpolates it
     to the wavelength solution used by MATISSE.
 
@@ -80,13 +73,14 @@ def get_flux_data_from_flux_file(
     flux_data = Table.read(flux_file, names=["wl", "flux"], format="ascii")
     cubic_spline = CubicSpline(flux_data["wl"], flux_data["flux"])
     interpolated_flux = (cubic_spline(wavelength_axis)).ravel()
-    return interpolated_flux, interpolated_flux*error_percentage
+    return interpolated_flux, interpolated_flux * error_percentage
 
 
-def unwrap_phases(phase: Union[float, np.ndarray],
-                  error: Optional[Union[float, np.ndarray]] = None,
-                  period: Optional[int] = 360
-                  ) -> Union[Tuple[np.ndarray, np.ndarray], np.ndarray]:
+def unwrap_phases(
+    phase: Union[float, np.ndarray],
+    error: Union[float, np.ndarray] | None = None,
+    period: int = 360,
+) -> Union[Tuple[np.ndarray, np.ndarray], np.ndarray]:
     """Unwraps both the phases and the errors of the input arrays.
 
     Parameters
@@ -120,7 +114,7 @@ def flip_phases(fits_file: Path) -> None:
         hdul.flush()
 
 
-def cprint(message: str, color: Optional[str] = None) -> None:
+def cprint(message: str, color: str | None = None) -> None:
     """Makes use of ascii-codes to print messages in color.
 
     Parameters
@@ -130,10 +124,15 @@ def cprint(message: str, color: Optional[str] = None) -> None:
     color : str, optional
         The name of the color to be used.
     """
-    color_dict = {"r": ["\033[91m", "\033[00m"], "g": ["\033[92m", "\033[00m"],
-                  "y": ["\033[93m", "\033[00m"], "lp": ["\033[94m", "\033[00m"],
-                  "p": ["\033[95m", "\033[00m"], "cy": ["\033[96m", "\033[00m"],
-                  "lg": ["\033[97m", "\033[00m"]}
+    color_dict = {
+        "r": ["\033[91m", "\033[00m"],
+        "g": ["\033[92m", "\033[00m"],
+        "y": ["\033[93m", "\033[00m"],
+        "lp": ["\033[94m", "\033[00m"],
+        "p": ["\033[95m", "\033[00m"],
+        "cy": ["\033[96m", "\033[00m"],
+        "lg": ["\033[97m", "\033[00m"],
+    }
 
     if color is not None:
         color_code = color_dict[color]
@@ -151,21 +150,25 @@ def capitalise_to_index(string: str, index: int):
 
 def print_execution_time(func: Callable):
     """Prints the execution time of the input function."""
+
     @wraps(func)
     def inner(*args, **kwargs):
         overall_start_time = time.perf_counter()
         result = func(*args, **kwargs)
-        execution_time = time.perf_counter()-overall_start_time
+        execution_time = time.perf_counter() - overall_start_time
         cprint(f"{'':-^50}", "lg")
-        cprint(f"[INFO]: Executed in {timedelta(seconds=execution_time)}"
-               " hh:mm:ss", "lg")
+        cprint(
+            f"[INFO]: Executed in {timedelta(seconds=execution_time)}" " hh:mm:ss", "lg"
+        )
         cprint(f"{'':-^50}", "lg")
         return result
+
     return inner
 
 
-def get_execution_modes(mode: Optional[str] = None,
-                        band: Optional[str] = None) -> Tuple[List[str], List[str]]:
+def get_execution_modes(
+    mode: str | None = None, band: str | None = None
+) -> Tuple[List[str], List[str]]:
     """Determines the mode- and band configurations used by the users input. Returns
     either one or two lists depending on the input.
 
@@ -198,7 +201,7 @@ def get_execution_modes(mode: Optional[str] = None,
     return modes, bands
 
 
-def split_fits(directory: Path, tag: str) -> Tuple[List[Path], Optional[List[Path]]]:
+def split_fits(directory: Path, tag: str) -> Tuple[List[Path], List[Path]]:
     """Searches a folder for a tag and if files are found it returns the non-chopped
     and chopped (.fits)-files. If there are only non-chopped (.fits)-files it will return
     'None' for the chopped-files.
@@ -263,8 +266,9 @@ def check_if_target(target_dir: Path) -> bool:
     return True if target_dir.glob("TARGET_RAW_INT*") else False
 
 
-def get_path_descriptor(root_dir: Path, descriptor: Path,
-                        tar_dir: Path, cal_dir: Path) -> Path:
+def get_path_descriptor(
+    root_dir: Path, descriptor: Path, tar_dir: Path, cal_dir: Path
+) -> Path:
     """Assembles the names for the new directories that will contain the
     calibrated files and returns the 'output_dir'.
 
@@ -286,17 +290,18 @@ def get_path_descriptor(root_dir: Path, descriptor: Path,
     """
     mode_and_band = str(tar_dir.parents[1]).split("/")[-2:]
     dir_name, time_stamp_sci, detector = str(tar_dir.parent).split(".")[:-1]
-    dir_name = dir_name.split('/')[-1].replace("raw", "cal")
-    time_stamp_cal = str(cal_dir.parent).split('.')[-3]
-    new_dir_name = '.'.join([descriptor, dir_name,
-                             time_stamp_sci, detector, time_stamp_cal, "rb"])
+    dir_name = dir_name.split("/")[-1].replace("raw", "cal")
+    time_stamp_cal = str(cal_dir.parent).split(".")[-3]
+    new_dir_name = ".".join(
+        [descriptor, dir_name, time_stamp_sci, detector, time_stamp_cal, "rb"]
+    )
     return root_dir / "calib" / mode_and_band[0] / new_dir_name
 
 
 # TODO: Reimplement both of the following functions in a better way
 def transform_uv_points(
-        baselines: List[float], hour_angle: np.ndarray,
-        latitude: u.rad, declination: u.rad) -> Tuple[np.ndarray, np.ndarray]:
+    baselines: List[float], hour_angle: np.ndarray, latitude: u.rad, declination: u.rad
+) -> Tuple[np.ndarray, np.ndarray]:
     """Calculates the earth rotation (synthesis) for the uv-point
     corresponding to the baselines for the input hour angle(s)
 
@@ -316,18 +321,30 @@ def transform_uv_points(
     """
     baseline_east, baseline_north, baseline_longest = baselines
 
-    u_coords = baseline_east * np.cos(hour_angle) - baseline_north * np.sin(latitude)\
-        * np.sin(hour_angle) + baseline_longest * np.cos(latitude) * np.sin(hour_angle)
-    v_coords = baseline_east * np.sin(declination) * np.sin(hour_angle)\
-        + baseline_north * (np.sin(latitude) * np.sin(declination) * np.cos(hour_angle)
-                            + np.cos(latitude) * np.cos(declination)) - baseline_longest * \
-        (np.cos(latitude) * np.sin(declination) * np.cos(hour_angle)
-         - np.sin(latitude) * np.cos(declination))
+    u_coords = (
+        baseline_east * np.cos(hour_angle)
+        - baseline_north * np.sin(latitude) * np.sin(hour_angle)
+        + baseline_longest * np.cos(latitude) * np.sin(hour_angle)
+    )
+    v_coords = (
+        baseline_east * np.sin(declination) * np.sin(hour_angle)
+        + baseline_north
+        * (
+            np.sin(latitude) * np.sin(declination) * np.cos(hour_angle)
+            + np.cos(latitude) * np.cos(declination)
+        )
+        - baseline_longest
+        * (
+            np.cos(latitude) * np.sin(declination) * np.cos(hour_angle)
+            - np.sin(latitude) * np.cos(declination)
+        )
+    )
     return u_coords, v_coords
 
 
-def calculate_uv_tracks(baselines: List[np.ndarray],
-                        declination: float, airmass_lim: float):
+def calculate_uv_tracks(
+    baselines: List[np.ndarray], declination: float, airmass_lim: float
+):
     """Calculates the tracks that uv-coordinates create from the earth rotation
     synthesis at the latitude of paranal.
 
@@ -340,17 +357,21 @@ def calculate_uv_tracks(baselines: List[np.ndarray],
     airmass_lim : float
         The airmass limit of the target.
     """
-    latitude_paranal = EarthLocation.of_site(
-        "paranal").geodetic.lat.to(u.rad)
-    hamax = np.arccos(abs((1./airmass_lim-np.sin(latitude_paranal)
-                           * np.sin(declination))/(np.cos(latitude_paranal)
-                                                   * np.cos(declination))))
-    return transform_uv_points(baselines, np.linspace(-hamax, hamax, 1000),
-                               latitude_paranal, declination)
+    latitude_paranal = EarthLocation.of_site("paranal").geodetic.lat.to(u.rad)
+    hamax = np.arccos(
+        abs(
+            (1.0 / airmass_lim - np.sin(latitude_paranal) * np.sin(declination))
+            / (np.cos(latitude_paranal) * np.cos(declination))
+        )
+    )
+    return transform_uv_points(
+        baselines, np.linspace(-hamax, hamax, 1000), latitude_paranal, declination
+    )
 
 
-def add_instrument(fits_file: List[Path], instrument: str,
-                   add_error: Optional[bool] = False) -> None:
+def add_instrument(
+    fits_file: List[Path], instrument: str, add_error: bool = False
+) -> None:
     """Add the instrument name to the header of the fits file
     as as well as noise to the data.
     """

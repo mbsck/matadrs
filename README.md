@@ -1,7 +1,6 @@
-# Matadrs
-<!-- Project Shields -->
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
-![Lifecycle: production](https://img.shields.io/badge/lifecycle-beta-green.svg)
+
+# Matadrs
 
 The (modular) MATISSE Automated Data Reduction Software (Matadrs) is a tool written to
 encompass all the individual steps and files needed to procure and reduce data generally
