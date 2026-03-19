@@ -1,5 +1,8 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
+> [!WARNING]
+> This package is depracated and an alternative is availabe as the [`matisse-pipeline`](https://github.com/Matisse-Consortium/matisse-pipeline)
+
 # Matadrs
 
 The (modular) MATISSE Automated Data Reduction Software (Matadrs) is a tool written to
