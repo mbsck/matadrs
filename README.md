@@ -1,4 +1,5 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
 
 > [!WARNING]
 > This package is depracated and an alternative is availabe as the [`matisse-pipeline`](https://github.com/Matisse-Consortium/matisse-pipeline)
